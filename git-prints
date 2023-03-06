@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Run a command on all Git repos under a path
+
+# usage:
+# git-prints plan <path> (optional)
+# git-prints build <path> (optional)
+
+# TODO: Prettify outputs.
+
+# Parse parameters
+[ "$1" ] && _mode="$1" || exit 1
+
+if [ "$2" ]; then
+  _path="$2"
+
+  # change dir to inputted path if valid
+  if [ -d "$_path" ]; then
+    cd "$_path" || exit
+  fi
+else
+  _path="$(pwd)"
+fi
+
+# TODO: Implement
+_help() {
+  printf "Function %s isn't implemented.\n" "${FUNCNAME[0]}"
+}
+
+# TODO: Implement
+_plan() {
+  printf "Working on %s. Function %s isn't implemented.\n" "$1" "${FUNCNAME[0]}" 
+}
+
+# TODO: Implement
+_build() {
+  printf "Working on %s. Function %s isn't implemented.\n" "$1" "${FUNCNAME[0]}" 
+}
+
+_orchestrate() {
+  _command="$1"
+
+  mapfile -t repos < <(fd -t d --unrestricted '\.git$')
+
+  # TODO: Implement exclude file
+  # There are undesired cases like Vim plugins.
+  # mapfile -t repos < <(fd -t d --unrestricted '\.git$' --ignore-file ${_ignore_file})
+
+  for repo in "${repos[@]}"; do
+    # trim .git/
+    local _path="${repo%.git/}"
+
+    # run sequentially
+    $_command "$_path"
+    
+    # run in parallel
+    #
+    # FIXME: Semaphore can't invoke the functions as it runs on a new thread.
+    # So variables that are going to be used need to be passed as parameters
+    # and the command must be in $PATH.
+    #
+    # NOTE: GitHub limits >4 simultaneous connections
+    #
+    # sem -j 4 "$_command" "$_path"
+  done
+
+  # wait for tasks to finish
+  sem --wait
+}
+
+main() {
+  # Invoke selected mode
+  case "$_mode" in
+    plan)  _orchestrate _plan;;
+    build) _orchestrate _build;;
+    *)     _help && exit 1;;
+  esac
+}
+
+main
