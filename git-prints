@@ -11,68 +11,108 @@
 [ "$1" ] && _mode="$1" || exit 1
 
 if [ "$2" ]; then
-  _path="$2"
+  _src_path="$2"
 
   # change dir to inputted path if valid
-  if [ -d "$_path" ]; then
-    cd "$_path" || exit
+  if [ -d "$_src_path" ]; then
+    cd "$_src_path" || exit
   fi
 else
-  _path="$(pwd)"
+  _src_path="$(pwd)"
 fi
 
-# TODO: Implement
-_help() {
-  printf "Function %s isn't implemented.\n" "${FUNCNAME[0]}"
+_debug() {
+  printf "Mode: %s\n" "$_mode"
+  printf "Source path: %s\n" "$_src_path"
+  printf "Destination path: %s\n" "$_dest_path"
 }
 
-# TODO: Implement
+_dest_path=".gitprints"
+
+_help() {
+  printf "Usage:
+    git-prints help
+    git-prints plan <path>
+    git-prints debug\n"
+}
+
 _plan() {
-  printf "Working on %s. Function %s isn't implemented.\n" "$1" "${FUNCNAME[0]}" 
+  local _path="${1%/.git/}"
+  local _src="${_path}/.git/config"
+  local _dest="${_dest_path}/${_path}/config"
+  
+  _src=${_src/\/\//\/} # remove duplicated slashes
+  _dest=${_dest/\/\//\/} # remove duplicated slashes
+
+  if [ "$GIT_PRINTS_DRY_RUN" == 1 ]; then
+    printf "Copy %s to %s\n" "$_src" "$_dest"
+  else
+    mkdir -p "${_dest%config}"
+    cp "$_src" "$_dest" 
+  fi
+}
+
+_is_submodule() {
+  local _path _repo_root _parent_path _parent_repo_root
+
+  _path="$1"
+  _repo_root="${_path%/.git/}"
+
+  if [ "$_repo_root" == ".git/" ]; then # if repo is root path
+    return 1
+  fi
+
+  _parent_path=${_repo_root%/*}
+  _parent_repo_root=$(git -C "$_parent_path" rev-parse --show-toplevel)
+  _modules_file="${_parent_repo_root}/.gitmodules"
+
+  if [ -a "$_modules_file" ]; then # parent has modules
+    # _query="${_path##*/}" # +sensitive
+    _query="${_path#"$_parent_repo_root"}" # +specific
+
+    if rg "$_query" < "$_modules_file" &>/dev/null; then # if repo isn't a parent module
+      return 1
+    else
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+_orchestrate_plan() {
+  printf "Orchestrating %s on %s\n\n" "$_mode" "$_src_path" 
+
+  mapfile -t _repos < <(fd -t d '\.git$' --hidden)
+
+  for _repo in "${_repos[@]}"; do
+    if ! _is_submodule "$_repo"; then
+      _plan "$_repo"
+    fi
+  done
 }
 
 # TODO: Implement
 _build() {
-  printf "Working on %s. Function %s isn't implemented.\n" "$1" "${FUNCNAME[0]}" 
+  if [ "$GIT_PRINTS_DRY_RUN" == 1 ]; then
+    echo "Do something"
+  else
+    echo "Do something"
+  fi
 }
 
-_orchestrate() {
-  _command="$1"
-
-  mapfile -t repos < <(fd -t d --unrestricted '\.git$')
-
-  # TODO: Implement exclude file
-  # There are undesired cases like Vim plugins.
-  # mapfile -t repos < <(fd -t d --unrestricted '\.git$' --ignore-file ${_ignore_file})
-
-  for repo in "${repos[@]}"; do
-    # trim .git/
-    local _path="${repo%.git/}"
-
-    # run sequentially
-    $_command "$_path"
-    
-    # run in parallel
-    #
-    # FIXME: Semaphore can't invoke the functions as it runs on a new thread.
-    # So variables that are going to be used need to be passed as parameters
-    # and the command must be in $PATH.
-    #
-    # NOTE: GitHub limits >4 simultaneous connections
-    #
-    # sem -j 4 "$_command" "$_path"
-  done
-
-  # wait for tasks to finish
-  sem --wait
+# TODO: Implement
+_orchestrate_build() {
+  echo "Do something"
 }
 
 main() {
   # Invoke selected mode
   case "$_mode" in
-    plan)  _orchestrate _plan;;
-    build) _orchestrate _build;;
-    *)     _help && exit 1;;
+    plan)       _orchestrate_plan;;
+    build)      _orchestrate_build;;
+    debug)      _debug;;
+    *)          _help && exit 1;;
   esac
 }
 
