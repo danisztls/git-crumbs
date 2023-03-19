@@ -102,6 +102,11 @@ _plan() {
   _src=${_src/\/\//\/} # remove duplicated slashes
   _dest=${_dest/\/\//\/} # remove duplicated slashes
 
+  if [ "$_path" == ".git/" ]; then # if repo is root path
+    _src=".git/config"
+    _dest="${_prints_storage}/config"
+  fi
+
   if [ "$GIT_PRINTS_DRY_RUN" == 1 ]; then
     printf "Copy ${_fmt_green}%s${_fmt_clear} to ${_fmt_green}%s${_fmt_clear}\n" "$_src" "$_dest"
   else
