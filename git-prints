@@ -49,6 +49,21 @@ else
   _log_debug="${_fmt_muted}DEBUG: %s${_fmt_clear}\n"
 fi
 
+# Checks
+# n of arguments
+if ! [ $# -gt 0 ] ; then
+  printf "ERROR: wrong number of arguments.\n"
+fi
+
+# dependencies
+_deps=(git fd)
+for _prog in "${_deps[@]}"; do
+  if [ ! "$(command -v "$_prog")" ]; then
+    printf "$_log_error" "$_prog not found found."
+    exit 1
+  fi
+done
+
 # Parse parameters
 [ "$1" ] && _mode="$1" || exit 1
 
@@ -63,6 +78,7 @@ else
   _target_path="$(pwd)"
 fi
 
+# Library
 _debug() {
   printf "Mode: ${_fmt_blue}%s${_fmt_clear}\n" "$_mode"
   printf "Source path: ${_fmt_blue}%s${_fmt_clear}\n" "$_target_path"
@@ -148,6 +164,7 @@ _orchestrate_build() {
   echo "Do something"
 }
 
+# Main
 main() {
   # Invoke selected mode
   case "$_mode" in
