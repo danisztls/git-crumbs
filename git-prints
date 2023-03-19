@@ -149,6 +149,14 @@ _orchestrate_plan() {
 
   mapfile -t _repos < <(fd -t d "^.git$" --hidden)
 
+  # clean destination
+  if [ -a "$_prints_storage" ]; then
+    if [ -a "$_prints_storage"-bak ]; then
+      rm -rf "$_prints_storage"-bak
+    fi
+    mv "$_prints_storage" "$_prints_storage"-bak
+  fi
+
   for _repo in "${_repos[@]}"; do
     if ! _is_submodule "$_repo"; then
       _plan "$_repo"
