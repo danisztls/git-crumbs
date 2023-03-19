@@ -5,47 +5,89 @@
 # git-prints plan <path> (optional)
 # git-prints build <path> (optional)
 
-# TODO: Prettify outputs.
+# shellcheck disable=SC2059
+
+if ! [ $# -eq 1 ] ; then
+  printf "ERROR: wrong number of arguments.\n"
+fi
+
+# is it running under systemd?
+if [ "$TERM" = "dumb" ]; then
+  _log_emerg="<0>%s\n" # red
+  _log_alert="<1>%s\n"
+  _log_crit="<2>%s\n"
+  _log_error="<3>%s\n"
+  _log_warning="<4>%s\n" # yellow
+  _log_notice="<5>%s\n" # white
+  _log_info="<6>%s\n"
+  _log_debug="<7>%s\n" # muted 
+
+else
+  # formatting escape codes
+  _fmt_clear="\e[0;0m"
+  _fmt_bold="\e[0;1m"
+  _fmt_muted="\e[0;2m"
+  _fmt_italic="\e[0;3m"
+  _fmt_underlined="\e[0;4m"
+  _fmt_black="\e[1;30m"
+  _fmt_red="\e[1;31m"
+  _fmt_green="\e[1;32m"
+  _fmt_yellow="\e[1;33m"
+  _fmt_blue="\e[1;34m"
+  _fmt_purple="\e[1;35m"
+  _fmt_cyan="\e[1;36m"
+  _fmt_white="\e[1;37m"
+
+  # log levels strings (systemd convention)
+  _log_emerg="${_fmt_red}EMERGENCY: %s${_fmt_clear}\n"
+  _log_alert="${_fmt_red}ALERT: %s${_fmt_clear}\n"
+  _log_crit="${_fmt_red}CRITICAL: %s${_fmt_clear}\n"
+  _log_error="${_fmt_red}ERROR: %s${_fmt_clear}\n"
+  _log_warning="${_fmt_yellow}WARNING: %s${_fmt_clear}\n"
+  _log_notice="${_fmt_bold}NOTICE: %s${_fmt_clear}\n"
+  _log_info="${_fmt_clear}INFO: %s\n${_fmt_clear}\n"
+  _log_debug="${_fmt_muted}DEBUG: %s${_fmt_clear}\n"
+fi
 
 # Parse parameters
 [ "$1" ] && _mode="$1" || exit 1
 
 if [ "$2" ]; then
-  _src_path="$2"
+  _target_path="$2"
 
   # change dir to inputted path if valid
-  if [ -d "$_src_path" ]; then
-    cd "$_src_path" || exit
+  if [ -d "$_target_path" ]; then
+    cd "$_target_path" || exit
   fi
 else
-  _src_path="$(pwd)"
+  _target_path="$(pwd)"
 fi
 
 _debug() {
-  printf "Mode: %s\n" "$_mode"
-  printf "Source path: %s\n" "$_src_path"
-  printf "Destination path: %s\n" "$_dest_path"
+  printf "Mode: ${_fmt_blue}%s${_fmt_clear}\n" "$_mode"
+  printf "Source path: ${_fmt_blue}%s${_fmt_clear}\n" "$_target_path"
 }
 
-_dest_path=".gitprints"
+_plan_dest_path=".gitprints"
 
 _help() {
-  printf "Usage:
-    git-prints help
-    git-prints plan <path>
-    git-prints debug\n"
+  printf "${_fmt_bold}Usage:${_fmt_clear}\n"
+  printf "git-prints ${_fmt_blue}help${_fmt_clear}\n"
+  printf "git-prints ${_fmt_blue}plan${_fmt_clear}  ${_fmt_yellow}<path>${_fmt_clear}\n"
+  printf "git-prints ${_fmt_blue}build${_fmt_clear} ${_fmt_yellow}<path>${_fmt_clear}\n"
+  printf "git-prints ${_fmt_blue}debug${_fmt_clear}\n"
 }
 
 _plan() {
   local _path="${1%/.git/}"
   local _src="${_path}/.git/config"
-  local _dest="${_dest_path}/${_path}/config"
+  local _dest="${_plan_dest_path}/${_path}/config"
   
   _src=${_src/\/\//\/} # remove duplicated slashes
   _dest=${_dest/\/\//\/} # remove duplicated slashes
 
   if [ "$GIT_PRINTS_DRY_RUN" == 1 ]; then
-    printf "Copy %s to %s\n" "$_src" "$_dest"
+    printf "Copy ${_fmt_green}%s${_fmt_clear} to ${_fmt_green}%s${_fmt_clear}\n" "$_src" "$_dest"
   else
     mkdir -p "${_dest%config}"
     cp "$_src" "$_dest" 
@@ -81,7 +123,7 @@ _is_submodule() {
 }
 
 _orchestrate_plan() {
-  printf "Orchestrating %s on %s\n\n" "$_mode" "$_src_path" 
+  printf "Orchestrating ${_fmt_blue}%s${_fmt_clear} on ${_fmt_green}%s${_fmt_clear}\n\n" "$_mode" "$_target_path" 
 
   mapfile -t _repos < <(fd -t d '\.git$' --hidden)
 
