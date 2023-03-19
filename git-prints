@@ -84,7 +84,7 @@ _debug() {
   printf "Source path: ${_fmt_blue}%s${_fmt_clear}\n" "$_target_path"
 }
 
-_plan_dest_path=".gitprints"
+_prints_storage=".gitprints"
 
 _help() {
   printf "${_fmt_bold}Usage:${_fmt_clear}\n"
@@ -95,9 +95,10 @@ _help() {
 }
 
 _plan() {
-  local _path="${1%/.git/}"
-  local _src="${_path}/.git/config"
-  local _dest="${_plan_dest_path}/${_path}/config"
+  local _path _src _dest
+  _path="${1%/.git/}"
+  _src="${_path}/.git/config"
+  _dest="${_prints_storage}/${_path}/config"
   
   _src=${_src/\/\//\/} # remove duplicated slashes
   _dest=${_dest/\/\//\/} # remove duplicated slashes
@@ -107,9 +108,9 @@ _plan() {
     _dest="${_prints_storage}/config"
   fi
 
-  if [ "$GIT_PRINTS_DRY_RUN" == 1 ]; then
-    printf "Copy ${_fmt_green}%s${_fmt_clear} to ${_fmt_green}%s${_fmt_clear}\n" "$_src" "$_dest"
-  else
+  printf "Copy ${_fmt_green}%s${_fmt_clear} to ${_fmt_green}%s${_fmt_clear}\n" "$_src" "$_dest"
+
+  if ! [ "$GIT_PRINTS_DRY_RUN" == 1 ]; then
     mkdir -p "${_dest%config}"
     cp "$_src" "$_dest" 
   fi
@@ -146,7 +147,7 @@ _is_submodule() {
 _orchestrate_plan() {
   printf "Orchestrating ${_fmt_blue}%s${_fmt_clear} on ${_fmt_green}%s${_fmt_clear}\n\n" "$_mode" "$_target_path" 
 
-  mapfile -t _repos < <(fd -t d '\.git$' --hidden)
+  mapfile -t _repos < <(fd -t d "^.git$" --hidden)
 
   for _repo in "${_repos[@]}"; do
     if ! _is_submodule "$_repo"; then
