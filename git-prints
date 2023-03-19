@@ -7,7 +7,7 @@
 
 # shellcheck disable=SC2059
 
-if ! [ $# -eq 1 ] ; then
+if ! [ $# -gt 0 ] ; then
   printf "ERROR: wrong number of arguments.\n"
 fi
 
