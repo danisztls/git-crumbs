@@ -146,7 +146,7 @@ _is_repo_submodule() {
 _orchestrate_plan() {
   printf "Orchestrating ${_fmt_blue}%s${_fmt_clear} on ${_fmt_green}%s${_fmt_clear}\n\n" "$_mode" "$_target_path" 
 
-  mapfile -t _repos < <(fd -t d "^.git$" --hidden)
+  mapfile -t _repos < <(fd -t d "^.git$" --unrestricted)
 
   # clean destination
   if [ -a "$_prints_storage" ]; then
@@ -170,7 +170,6 @@ _build() {
   _dest="${_dest%config}"
   _git_dir="${_dest}.git"
   _git_config="${_git_dir}/config"
-  
 
   printf "Copy ${_fmt_green}%s${_fmt_clear} to ${_fmt_green}%s${_fmt_clear}\n" "$_src" "$_git_config"
 
@@ -194,13 +193,11 @@ _orchestrate_build() {
     return 1
   fi
 
-  mapfile -t _prints < <(fd -t f "^config$" "$_prints_storage")
+  mapfile -t _prints < <(fd -t f "^config$" "$_prints_storage" --unrestricted)
 
   for _print in "${_prints[@]}"; do
     _build "$_print"
   done
-
-  # TODO: Write instructions on dest path.
 }
 
 # Main
