@@ -75,13 +75,15 @@ else
   _target_path="$(pwd)"
 fi
 
+
+# Config & Defaults
+_prints_storage=".gitprints"
+
 # Library
 _debug() {
   printf "Mode: ${_fmt_blue}%s${_fmt_clear}\n" "$_mode"
   printf "Source path: ${_fmt_blue}%s${_fmt_clear}\n" "$_target_path"
 }
-
-_prints_storage=".gitprints"
 
 _help() {
   printf "${_fmt_bold}Usage:${_fmt_clear}\n"
@@ -174,7 +176,6 @@ _build() {
 
   if [ -a "$_git_dir" ]; then
     printf "$_log_warning" "$_git_dir already exists. Ignoring..."
-
     return 1
   fi
 
@@ -188,6 +189,11 @@ _build() {
 _orchestrate_build() {
   printf "Orchestrating ${_fmt_blue}%s${_fmt_clear} on ${_fmt_green}%s${_fmt_clear}\n\n" "$_mode" "$_target_path" 
 
+  if ! [ -d "$_prints_storage" ]; then
+    printf "$_log_error" "$_prints_storage not found found at target."
+    return 1
+  fi
+
   mapfile -t _prints < <(fd -t f "^config$" "$_prints_storage")
 
   for _print in "${_prints[@]}"; do
@@ -195,7 +201,6 @@ _orchestrate_build() {
   done
 
   # TODO: Write instructions on dest path.
-
 }
 
 # Main
