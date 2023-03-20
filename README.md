@@ -13,8 +13,22 @@ There are many ways of solving this use case like using Git submodules or a deve
 
 ## Usage
 
-```shell
+### Plan
+
+```sh
+git-prints plan <path>
 ```
+
+NOTE: Prints will be saved at `path/.gitprints/`
+
+### Build
+
+
+```sh
+git-prints build <path>
+```
+
+NOTE: Path should be an empty directory containing only prints at `.gitprints/`.
 
 ## Similar tools
 
