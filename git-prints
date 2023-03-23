@@ -173,14 +173,17 @@ _build() {
 
   printf "\nCopy ${_fmt_green}%s${_fmt_clear} to ${_fmt_green}%s${_fmt_clear}\n" "$_src" "$_git_config"
 
-  if [ -a "$_git_dir" ]; then
-    printf "$_log_warning" "$_git_dir already exists. Ignoring..."
-    return 1
-  fi
-
   if ! [ "$GIT_PRINTS_DRY_RUN" == 1 ]; then
-    mkdir -p "$_git_dir"
-    cp "$_src" "$_git_config"
+    if ! [ -a "$_git_dir" ]; then
+      mkdir -p "$_git_dir"
+    fi
+
+    if [ -a "$_src" ]; then
+      printf "$_log_warning" "$_src already exists. Ignoring..."
+    else
+      cp "$_src" "$_git_config"
+    fi
+
     printf "${_fmt_blue}%s${_fmt_clear}\n" "init..."
     git -C "$_dest" init || return 1
     printf "${_fmt_blue}%s${_fmt_clear}\n" "pull..."
