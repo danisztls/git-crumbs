@@ -185,6 +185,12 @@ _build() {
     git -C "$_dest" init || return 1
     printf "${_fmt_blue}%s${_fmt_clear}\n" "pull..."
     git -C "$_dest" pull || return 1
+
+    if ! _is_repo_submodule "$_repo"; then
+      git submodule update --init --recursive
+      git submodule foreach 'git checkout main' # FIXME: Main branch could be master.
+    fi
+
     return 0
   fi
 }
