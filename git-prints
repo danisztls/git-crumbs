@@ -210,22 +210,24 @@ _build() {
 }
 
 _single_build() {
-  if ! [ "$1" ]; then
-    printf "$_log_error" "Missing param 'print-path'."
-    exit 1
-  fi
+  printf "$_log_notice" "This mode is commented because it's not working properly."
 
-  local _print_path="$1"
-  local _print="${_print_path#*"$_prints_storage/"}"
-
-  if ! [ -f "$_print_path/config" ]; then
-    printf "$_log_error" "The print '$_print' is invalid and doesn't have a config."
-    exit 1
-  fi
-
-  if ! _build "$_print"; then
-    printf "$_log_error" "failed to init $_print"
-  fi
+  # if ! [ "$1" ]; then
+  #   printf "$_log_error" "Missing param 'print-path'."
+  #   exit 1
+  # fi
+  #
+  # local _print_path="$1"
+  # local _print="${_print_path#*"$_prints_storage/"}"
+  #
+  # if ! [ -f "$_print_path/config" ]; then
+  #   printf "$_log_error" "The print '$_print' is invalid and doesn't have a config."
+  #   exit 1
+  # fi
+  #
+  # if ! _build "$_print"; then
+  #   printf "$_log_error" "failed to init $_print"
+  # fi
 }
 
 _orchestrate_build() {
