@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # Run a command on all Git repos under a path
 
-# usage:
-# git-prints plan <path> (optional)
-# git-prints build <path> (optional)
+# usage: git-prints help
 
 # shellcheck disable=SC2059
 
@@ -48,8 +46,8 @@ fi
 
 # Checks
 # n of arguments
-if ! [ $# -gt 0 ] ; then
-  printf "ERROR: wrong number of arguments.\n"
+if ! [ $# -gt 1 ]; then # >=2 params required
+  printf "$_log_error" "Wrong number of arguments."
 fi
 
 # dependencies
@@ -62,19 +60,27 @@ for _prog in "${_deps[@]}"; do
 done
 
 # Parse parameters
-[ "$1" ] && _mode="$1" || exit 1
+if [ "$1" ]; then
+  _mode="$1"
+else
+  printf "$_log_error" "Missing param 'mode'."
+  exit 1
+fi
 
 if [ "$2" ]; then
   _target_path="$2"
 
   # change dir to inputted path if valid
   if [ -d "$_target_path" ]; then
-    cd "$_target_path" || exit
+    cd "$_target_path" || exit 1
+  else
+    printf "$_log_error" "Target path '$_target_path' is invalid."
+    exit 1
   fi
 else
-  _target_path="$(pwd)"
+    printf "$_log_error" "Missing param 'target-path'."
+    exit 1
 fi
-
 
 # Config & Defaults
 _prints_storage=".gitprints"
@@ -88,8 +94,8 @@ _debug() {
 _help() {
   printf "${_fmt_bold}Usage:${_fmt_clear}\n"
   printf "git-prints ${_fmt_blue}help${_fmt_clear}\n"
-  printf "git-prints ${_fmt_blue}plan${_fmt_clear}  ${_fmt_yellow}<path>${_fmt_clear}\n"
-  printf "git-prints ${_fmt_blue}build${_fmt_clear} ${_fmt_yellow}<path>${_fmt_clear}\n"
+  printf "git-prints ${_fmt_blue}plan${_fmt_clear}  ${_fmt_yellow}<target-path>${_fmt_clear}\n"
+  printf "git-prints ${_fmt_blue}build${_fmt_clear} ${_fmt_yellow}<target-path>${_fmt_clear}\n"
   printf "git-prints ${_fmt_blue}debug${_fmt_clear}\n"
 }
 
