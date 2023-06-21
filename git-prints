@@ -82,6 +82,10 @@ else
     exit 1
 fi
 
+if [ "$3" ]; then
+  _print_path="$3"
+fi
+
 # Config & Defaults
 _prints_storage=".gitprints"
 
@@ -206,14 +210,15 @@ _build() {
 }
 
 _single_build() {
-  local _print="${1#*"$_prints_storage/"}"
-
   if ! [ "$1" ]; then
     printf "$_log_error" "Missing param 'print-path'."
     exit 1
   fi
 
-  if ! [ -f "$_print/config" ]; then
+  local _print_path="$1"
+  local _print="${_print_path#*"$_prints_storage/"}"
+
+  if ! [ -f "$_print_path/config" ]; then
     printf "$_log_error" "The print '$_print' is invalid and doesn't have a config."
     exit 1
   fi
