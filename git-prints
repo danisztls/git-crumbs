@@ -96,6 +96,7 @@ _help() {
   printf "git-prints ${_fmt_blue}help${_fmt_clear}\n"
   printf "git-prints ${_fmt_blue}plan${_fmt_clear}  ${_fmt_yellow}<target-path>${_fmt_clear}\n"
   printf "git-prints ${_fmt_blue}build${_fmt_clear} ${_fmt_yellow}<target-path>${_fmt_clear}\n"
+  printf "git-prints ${_fmt_blue}single-build${_fmt_clear} ${_fmt_yellow}<target-path>${_fmt_clear} ${_fmt_yellow}<print-path>${_fmt_clear}\n"
   printf "git-prints ${_fmt_blue}debug${_fmt_clear}\n"
 }
 
@@ -204,6 +205,24 @@ _build() {
   fi
 }
 
+_single_build() {
+  local _print="${1#*"$_prints_storage/"}"
+
+  if ! [ "$1" ]; then
+    printf "$_log_error" "Missing param 'print-path'."
+    exit 1
+  fi
+
+  if ! [ -f "$_print/config" ]; then
+    printf "$_log_error" "The print '$_print' is invalid and doesn't have a config."
+    exit 1
+  fi
+
+  if ! _build "$_print"; then
+    printf "$_log_error" "failed to init $_print"
+  fi
+}
+
 _orchestrate_build() {
   printf "Orchestrating ${_fmt_blue}%s${_fmt_clear} on ${_fmt_green}%s${_fmt_clear}\n\n" "$_mode" "$_target_path" 
 
@@ -225,10 +244,11 @@ _orchestrate_build() {
 main() {
   # Invoke selected mode
   case "$_mode" in
-    plan)       _orchestrate_plan;;
-    build)      _orchestrate_build;;
-    debug)      _debug;;
-    *)          _help && exit 1;;
+    plan)         _orchestrate_plan;;
+    build)        _orchestrate_build;;
+    single-build) _single_build "$_print_path";;
+    debug)        _debug;;
+    *)            _help && exit 1;;
   esac
 }
 
